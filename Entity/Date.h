@@ -6,8 +6,20 @@
 #define CAR_RENTAL_DATE_H
 
 
-class Date {
+#pragma once
 
+class Date
+{
+public:
+    int year;
+    int month;
+    int day;
+
+    Date();
+    Date(int y, int m, int d);
+
+    bool operator<(const Date& other) const;
+    bool operator==(const Date& other) const;
 };
 
 

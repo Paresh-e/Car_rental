@@ -53,6 +53,11 @@ DoublyLinkedList<T>::getHead() const
     return head;
 }
 template <typename T>
+typename DoublyLinkedList<T>::Node* DoublyLinkedList<T>::getTail() const
+{
+    return tail;
+}
+template <typename T>
 int DoublyLinkedList<T>::getSize() const
 {
     return size;

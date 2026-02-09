@@ -9,10 +9,11 @@ void Menu::start() {
 
     int choice = 0 ;
     while(true){
+
         cout<<"------------------------------"<<endl;
         cout<<"Welcome..||CarRentalSystem||"<<endl;
         cout<<"------------------------------"<<endl;
-        cout<<"1.Guest\n"<<"2.Customer\n"<<"3.Staff\n" <<"4.Maintenace\n"<<"5.Manager"<<endl;
+        cout<<"1.Guest\n"<<"2.Customer\n"<<"3.Staff\n" <<"4.Maintenance\n"<<"5.Manager\n"<<"0.Exit"<<endl;
         cin>>choice;
         if(choice == 1){
 
@@ -26,8 +27,11 @@ void Menu::start() {
         else if(choice == 4){
 
         }
-        else if (choice == 50){
+        else if (choice == 5){
 
+        }
+        else if(choice == 0){
+            break;
         }
         else{
             std::cout << "Invalid choice.\n";

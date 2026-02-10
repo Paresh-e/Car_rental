@@ -1,14 +1,22 @@
-//
-// Created by asus on 2/10/2026.
-//
+#ifndef RESERVATION_MANAGER_H
+#define RESERVATION_MANAGER_H
 
-#ifndef CAR_RENTAL_RESERVATIONMANAGER_H
-#define CAR_RENTAL_RESERVATIONMANAGER_H
+#include <string>
+#include "../Entity/Reservation.h"
+#include "../Containers/MinHeap.h"
 
+class ReservationManager
+{
+private:
+    MinHeap<Reservation> reservations;
 
-class ReservationManager {
+public:
+    void addReservation(const Reservation& r);
+    Reservation getNextReservation();
+    bool empty() const;
 
+    void loadFromFile(const std::string& filename);
+    void saveToFile(const std::string& filename) const;
 };
 
-
-#endif //CAR_RENTAL_RESERVATIONMANAGER_H
+#endif

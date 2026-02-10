@@ -7,11 +7,27 @@
 #include "../Containers/DoublyLL.h"
 #include "../Containers/AVL.h"
 #include "../Entity/Car.h"
-class CarManger {
+using namespace std;
+class CarManager {
+    private:
+    DoublyLinkedList<Car> carsList;
+    AVLTree<Car*> carTree;
+    string fileName;
+
 public:
-    DoublyLinkedList<Car> Cars;
+    CarManager(string fileName = "cars.txt");
+
+    void loadCarsFromFile();
+    void saveCarsToFile();
+
+    void addCar(const Car& car);
+    bool removeCarByID(int id);
+
+    Car* searchCarByID(int id);
+    void displayAllCars();
+
+    DoublyLinkedList<Car>* getCarsList();
+
 
 };
-
-
 #endif //CAR_RENTAL_CARMANGER_H

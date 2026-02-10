@@ -24,7 +24,7 @@ public:
     DoublyLinkedList();
     ~DoublyLinkedList();
 
-    // ⬅️ تغییر مهم
+  
     T* pushBack(const T& value);
 
 
@@ -33,5 +33,6 @@ public:
     bool isEmpty() const;
 
     Node* getHead() const;
+    Node* getTail() const;
     void clear();
 };

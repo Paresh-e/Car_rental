@@ -26,6 +26,5 @@ public :
          const std::string& passwordHash,
          UserRole role);
 };
-
-
+ 
 #endif //CAR_RENTAL_USER_H

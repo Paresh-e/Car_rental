@@ -1,87 +1,99 @@
-#include <iostream>
+#include <stdexcept>
+#include <algorithm>
 #include "MinHeap.h"
+
 template <typename T>
-int MinHeap<T>::parent(int i) {
-    return (i - 1) / 2;
+MinHeap<T>::MinHeap(int capacity)
+{
+    this->capacity = capacity;
+    size = 0;
+    data = new T[capacity];
 }
 
 template <typename T>
-int MinHeap<T>::left(int i) {
-    return 2 * i + 1;
+MinHeap<T>::~MinHeap()
+{
+    delete[] data;
 }
 
 template <typename T>
-int MinHeap<T>::right(int i) {
-    return 2 * i + 2;
+bool MinHeap<T>::isEmpty() const
+{
+    return size == 0;
 }
 
 template <typename T>
-void MinHeap<T>::heapifyUp(int i) {
-    while (i != 0 && heap[parent(i)] > heap[i]) {
-        swap(heap[i], heap[parent(i)]);
-        i = parent(i);
-    }
+bool MinHeap<T>::isFull() const
+{
+    return size == capacity;
 }
 
 template <typename T>
-void MinHeap<T>::heapifyDown(int i) {
-    int smallest = i;
-    int l = left(i);
-    int r = right(i);
+void MinHeap<T>::push(const T& value)
+{
+    if (isFull())
+        throw std::overflow_error("Heap is full");
 
-    if (l < heap.size() && heap[l] < heap[smallest])
-        smallest = l;
-
-    if (r < heap.size() && heap[r] < heap[smallest])
-        smallest = r;
-
-    if (smallest != i) {
-        swap(heap[i], heap[smallest]);
-        heapifyDown(smallest);
-    }
+    data[size] = value;
+    heapifyUp(size);
+    size++;
 }
 
 template <typename T>
-bool MinHeap<T>::empty() const {
-    return heap.empty();
+T MinHeap<T>::peek() const
+{
+    if (isEmpty())
+        throw std::underflow_error("Heap is empty");
+
+    return data[0];
 }
 
 template <typename T>
-int MinHeap<T>::size() const {
-    return heap.size();
-}
+T MinHeap<T>::pop()
+{
+    if (isEmpty())
+        throw std::underflow_error("Heap is empty");
 
-template <typename T>
-void MinHeap<T>::insert(const T& value) {
-    heap.push_back(value);
-    heapifyUp(heap.size() - 1);
-}
-
-template <typename T>
-T MinHeap<T>::getMin() const {
-    if (heap.empty())
-        throw runtime_error("Heap is empty");
-    return heap[0];
-}
-
-template <typename T>
-T MinHeap<T>::extractMin() {
-    if (heap.empty())
-        throw runtime_error("Heap is empty");
-
-    T root = heap[0];
-    heap[0] = heap.back();
-    heap.pop_back();
-
-    if (!heap.empty())
-        heapifyDown(0);
+    T root = data[0];
+    data[0] = data[size - 1];
+    size--;
+    heapifyDown(0);
 
     return root;
 }
 
 template <typename T>
-void MinHeap<T>::printHeap() const {
-    for (const T& x : heap)
-        cout << x << " ";
-    cout << endl;
+void MinHeap<T>::heapifyUp(int index)
+{
+    int parent = (index - 1) / 2;
+
+    while (index > 0 && data[index] < data[parent])
+    {
+        std::swap(data[index], data[parent]);
+        index = parent;
+        parent = (index - 1) / 2;
+    }
+}
+
+template <typename T>
+void MinHeap<T>::heapifyDown(int index)
+{
+    while (true)
+    {
+        int left = 2 * index + 1;
+        int right = 2 * index + 2;
+        int smallest = index;
+
+        if (left < size && data[left] < data[smallest])
+            smallest = left;
+
+        if (right < size && data[right] < data[smallest])
+            smallest = right;
+
+        if (smallest == index)
+            break;
+
+        std::swap(data[index], data[smallest]);
+        index = smallest;
+    }
 }

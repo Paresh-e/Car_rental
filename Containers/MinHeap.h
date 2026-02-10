@@ -6,26 +6,28 @@
 using namespace std;
 
 template <typename T>
-class MinHeap {
+class MinHeap
+{
 private:
-    vector<T> heap;
+    T* data;
+    int capacity;
+    int size;
 
-    int parent(int i);
-    int left(int i);
-    int right(int i);
-
-    void heapifyUp(int i);
-    void heapifyDown(int i);
+    void heapifyUp(int index);
+    void heapifyDown(int index);
 
 public:
-    bool empty() const;
-    int size() const;
+    MinHeap(int capacity = 100);
+    ~MinHeap();
 
-    void insert(const T& value);
-    T getMin() const;
-    T extractMin();
-    void printHeap() const;
+    void push(const T& value);
+    T pop();
+    T peek() const;
+
+    bool isEmpty() const;
+    bool isFull() const;
 };
+
 
 #include "MinHeap.cpp"  // مهم!
 

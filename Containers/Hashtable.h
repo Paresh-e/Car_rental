@@ -43,7 +43,4 @@ public:
 
     void clear();
 };
-
-
-
 #endif

@@ -6,8 +6,14 @@
 #define CAR_RENTAL_MAINTENANCEMANAGER_H
 
 
-class MaintenanceManager {
+#include "../Containers/DoublyLL.h"
+#include "../Entity/Maintenance.h"
 
+class MaintenanceManager {
+public:
+    DoublyLinkedList<Maintenance> MainS;
+    bool LoadFF(string = "maintenance.txt");
+    void SaveTF(string = "maintenance.txt");
 };
 
 

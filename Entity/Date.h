@@ -4,8 +4,9 @@
 
 #ifndef CAR_RENTAL_DATE_H
 #define CAR_RENTAL_DATE_H
-
-
+#include <string>
+#include <sstream>
+using namespace std;
 #pragma once
 
 class Date
@@ -20,6 +21,8 @@ public:
 
     bool operator<(const Date& other) const;
     bool operator==(const Date& other) const;
+    string to_string();
+    static Date from_string(const string&);
 };
 
 

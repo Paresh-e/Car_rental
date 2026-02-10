@@ -33,6 +33,13 @@ public:
                 const Date& reservedFrom,
                 const Date& reservedTo,
                 ReservationStatus status);
+    bool operator<(const Reservation& other) const
+    {
+        if (status != other.status)
+            return status == PENDING;
+
+        return requestDate < other.requestDate;
+    }
 };
 
 #endif //CAR_RENTAL_RESERVATION_H

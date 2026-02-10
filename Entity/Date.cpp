@@ -23,3 +23,17 @@ bool Date::operator==(const Date& other) const
            month == other.month &&
            day == other.day;
 }
+
+string Date::to_string() {
+    return std::to_string(this->year)+"|"+std::to_string(this->month)+"|"+std::to_string(this->day);
+}
+Date Date::from_string(const string&s) {
+    stringstream ss(s);
+    string d,m,y;
+    std::getline(ss,d,'|');
+    std::getline(ss,m,'|');
+    std::getline(ss,y,'|');
+    return Date(std::stoi(y),std::stoi(m),std::stoi(d));
+
+
+}

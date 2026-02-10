@@ -22,7 +22,14 @@ RentalStatus status;
     Date endDate;
 
     double totalCost;
-    
+//    int reservationID;
+//
+//    int userID;
+//    int carID;
+//
+//    Date requestDate;
+//    Date reservedFrom;
+//    Date reservedTo;
     Rental();
     Rental(int rentalID,
            int userID,

@@ -10,7 +10,8 @@ enum UserRole
     GUEST,
     CUSTOMER,
     STAFF,
-    MANAGER
+    MANAGER,
+    TECHNICIAN
 };
 
 class User {

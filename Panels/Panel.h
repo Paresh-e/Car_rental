@@ -15,12 +15,15 @@ private:
     void showInitialMenu();
     void handleGuest();
     void handleCustomer(User* currentUser);
-
+    void handleManager(User* currentUser);
+    void handleStaff(User* currentUser);
+    void handleMaintenance(User* currentUser);
 public:
     
     Panel(CarManager& cm, UserManager& um, ReservationManager& rm );
 
-   
+
+
     void run();
 };
 

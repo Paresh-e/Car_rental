@@ -5,6 +5,7 @@
 #ifndef CAR_RENTAL_CAR_H
 #define CAR_RENTAL_CAR_H
 #include <string>
+
 enum CarStatus
 {
     AVAILABLE,
@@ -12,9 +13,9 @@ enum CarStatus
     RENTED,
     MAINTENANCE
 };
+
 class Car
 {
-
 public:
     static int IDcounter;
     int id;

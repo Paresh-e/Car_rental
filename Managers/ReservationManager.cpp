@@ -7,7 +7,7 @@
 #include <fstream>
 #include <stdexcept>
 
-void ReservationManager::addReservation(const Reservation& r)
+void ReservationManager::addReservation(Reservation& r)
 {
     reservations.push(r);
 }
@@ -77,3 +77,9 @@ void ReservationManager::saveToFile(const std::string& filename) const
 
     out.close();
 }
+
+ReservationManager::ReservationManager() {
+
+}
+
+

@@ -11,12 +11,13 @@ private:
     MinHeap<Reservation> reservations;
 
 public:
-    void addReservation(const Reservation& r);
+    void addReservation( Reservation& r);
     Reservation getNextReservation();
     bool empty() const;
 
-    void loadFromFile(const std::string& filename);
-    void saveToFile(const std::string& filename) const;
+    void loadFromFile(const std::string& filename="Reservations.txt");
+    void saveToFile(const std::string& filename="Reservations.txt") const;
+    ReservationManager();
 };
 
 #endif

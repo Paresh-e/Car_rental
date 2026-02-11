@@ -6,9 +6,9 @@
 #include <sstream>
 #include <string>
 
-#include "User.h"
-#include "DoublyLL.h"
-#include "..//Containers/Hashtable.h"
+#include "../Entity/User.h"
+#include "../Containers/DoublyLL.h"
+#include "../Containers/Hashtable.h"
 
 using namespace std;
 

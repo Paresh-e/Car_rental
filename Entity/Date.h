@@ -4,8 +4,10 @@
 
 #ifndef CAR_RENTAL_DATE_H
 #define CAR_RENTAL_DATE_H
+
 #include <string>
 #include <sstream>
+#include <ctime>
 using namespace std;
 #pragma once
 
@@ -21,9 +23,12 @@ public:
 
     bool operator<(const Date& other) const;
     bool operator==(const Date& other) const;
-    string to_string();
-    static Date from_string(const string&);
-};
 
+    string to_string() const;
+    static Date from_string(const string& s);
+
+    // برگرداندن تاریخ امروز سیستم
+    static Date today();
+};
 
 #endif //CAR_RENTAL_DATE_H

@@ -3,83 +3,183 @@
 //
 
 #include "ReservationManager.h"
-#include "ReservationManager.h"
 #include <fstream>
 #include <stdexcept>
+#include <cmath>
 
-void ReservationManager::addReservation(Reservation& r)
+ReservationManager::ReservationManager(CarManager& cm)
+    : carManager(cm) {}
+
+
+void ReservationManager::addReservation(const Reservation& r)
 {
-    reservations.push(r);
+    Reservation copy = r;
+    resList.pushBack(copy);
+    Reservation* ptr = &(resList.getTail()->data);
+    reservationsHeap.push(ptr);
+
+    // ذخیره به فایل بلافاصله بعد از اضافه شدن
+    saveToFile("reservations.txt");
 }
 
-Reservation ReservationManager::getNextReservation()
+int ReservationManager::generateNewReservationID()
 {
-    if (reservations.isEmpty())
-        throw std::runtime_error("No reservations");
+    int maxID = 0;
+    auto node = resList.getHead();
+    while (node != nullptr)
+    {
+        if (node->data.reservationID > maxID)
+            maxID = node->data.reservationID;
+        node = node->next;
+    }
+    return maxID + 1;
+}
+std::vector<Reservation*> ReservationManager::getReservationsByUser(int userID)
+{
+    std::vector<Reservation*> result;
+    auto node = resList.getHead();
 
-    return reservations.pop();
+    while (node != nullptr)
+    {
+        if (node->data.userID == userID)
+            result.push_back(&(node->data));
+
+        node = node->next;
+    }
+
+    return result;
 }
 
+
+Reservation* ReservationManager::findReservationByID(int reservationID)
+{
+    auto node = resList.getHead();
+    while (node != nullptr)
+    {
+        if (node->data.reservationID == reservationID)
+            return &(node->data);
+
+        node = node->next;
+    }
+    return nullptr;
+}
+
+
+bool ReservationManager::payReservation(int reservationID)
+{
+    Reservation* r = findReservationByID(reservationID);
+    if (r == nullptr) return false;
+    if (r->status != PENDING) return false; // فقط قابل پرداخت در وضعیت PENDING
+
+    // mark as paid
+    r->paid = true;
+    r->status = CONFIRMED;
+
+    // تبدیل وضعیت خودرو به RENTED
+    Car* car = carManager.searchCarByID(r->carID);
+    if (car) {
+        car->status = RENTED;
+        // ذخیره تغییرات خودرو در فایل
+        carManager.saveCarsToFile();
+    }
+
+    // ذخیره تغییرات رزرو در فایل
+    saveToFile("reservations.txt");
+
+    return true;
+}
+
+
+bool ReservationManager::cancelReservation(int reservationID)
+{
+    Reservation* r = findReservationByID(reservationID);
+    if (r == nullptr) return false;
+    if (r->status != PENDING) return false; // نمی‌توان رزروی را که تایید یا اجرا شده لغو کرد
+
+    r->status = CANCELED;
+    saveToFile("reservations.txt");
+    return true;
+}
+
+double ReservationManager::calculateReservationCost(const Reservation& r)
+{
+    Car* car = carManager.searchCarByID(r.carID);
+    if (!car) return 0;
+
+    int days = (r.reservedTo.year*365 + r.reservedTo.month*30 + r.reservedTo.day)
+             - (r.reservedFrom.year*365 + r.reservedFrom.month*30 + r.reservedFrom.day);
+    if (days <= 0) days = 1;
+
+    return car->pricePerDay * days;
+}
+
+// چک کردن خالی بودن هیپ
 bool ReservationManager::empty() const
 {
-    return reservations.isEmpty();
+    return reservationsHeap.isEmpty();
 }
+
+// گرفتن رزرو بعدی از هیپ
+Reservation* ReservationManager::getNextReservation()
+{
+    if (reservationsHeap.isEmpty())
+        throw std::runtime_error("No reservations");
+
+    return reservationsHeap.pop();
+}
+
+// بارگذاری از فایل
 void ReservationManager::loadFromFile(const std::string& filename)
 {
     std::ifstream in(filename);
     if (!in)
         throw std::runtime_error("Cannot open file");
 
-    while (!in.eof()) {
+    while (!in.eof())
+    {
         Reservation r;
         int status;
 
         in >> r.reservationID >> r.userID >> r.carID;
         if (in.fail()) break;
-        string reqDate,fromDate,toDate;
 
-        in >> reqDate;
+        std::string reqDate, fromDate, toDate;
+        in >> reqDate >> fromDate >> toDate >> status;
+
         r.requestDate = Date::from_string(reqDate);
-        in >> fromDate;
-        r.reservedFrom=Date::from_string(fromDate);
-
-        in >> toDate;
-
+        r.reservedFrom = Date::from_string(fromDate);
         r.reservedTo = Date::from_string(toDate);
-        in >> status;
-
         r.status = static_cast<ReservationStatus>(status);
-        reservations.push(r);
+
+        addReservation(r);
     }
 
     in.close();
 }
+
+// ذخیره در فایل
 void ReservationManager::saveToFile(const std::string& filename) const
 {
     std::ofstream out(filename);
     if (!out)
         throw std::runtime_error("Cannot open file");
 
-    MinHeap<Reservation> temp = reservations;
-
-    while (!temp.isEmpty()) {
-        Reservation r = temp.pop();
+    auto node = resList.getHead();
+    while (node)
+    {
+        Reservation r = node->data;
 
         out << r.reservationID << " "
             << r.userID << " "
-            << r.carID << "\n";
+            << r.carID << " "
+            << r.requestDate.to_string() << " "
+            << r.reservedFrom.to_string() << " "
+            << r.reservedTo.to_string() << " "
+            << r.status
+            << "\n";
 
-        out << r.requestDate.to_string() << "\n";
-        out << r.reservedFrom.to_string() << "\n";
-        out << r.reservedTo.to_string() << "\n";
-        out << r.status << "\n";
+        node = node->next;
     }
 
     out.close();
 }
-
-ReservationManager::ReservationManager() {
-
-}
-
-

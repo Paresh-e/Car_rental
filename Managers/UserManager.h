@@ -34,6 +34,8 @@ public:
     bool login(string username, string passwordHash);
 
     void displayAllUsers();
+    int generateNewUserID();
+    bool registerUser(string username, string passwordHash, UserRole role);
 };
 
 #endif

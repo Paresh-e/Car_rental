@@ -44,6 +44,6 @@ public:
     void clear();
 };
 
-
+#include "Hashtable.cpp"
 
 #endif

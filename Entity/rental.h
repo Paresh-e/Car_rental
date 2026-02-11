@@ -31,7 +31,7 @@ RentalStatus status;
 //    Date reservedFrom;
 //    Date reservedTo;
     Rental();
-    Rental(int rentalID,
+    Rental(int rentalID, 
            int userID,
            int carID,
            const Date& startDate,

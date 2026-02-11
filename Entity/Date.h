@@ -22,8 +22,9 @@ public:
     Date(int y, int m, int d);
 
     bool operator<(const Date& other) const;
+    bool operator>(const Date& other) const;
     bool operator==(const Date& other) const;
-
+    int daysFrom(const Date& other) const;
     string to_string() const;
     static Date from_string(const string& s);
 

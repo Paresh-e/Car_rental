@@ -4,8 +4,8 @@
 #include <functional>
 using namespace std;
 
-Panel::Panel(CarManager& cm, UserManager& um, ReservationManager& rm)
-    : carManager(cm), userManager(um), reservationManager(rm)
+Panel::Panel(CarManager& cm, UserManager& um, ReservationManager& rm,MaintenanceManager& mm)
+    : carManager(cm), userManager(um), reservationManager(rm), maintenanceManager(mm)
 {}
 
 void Panel::showInitialMenu()
@@ -30,7 +30,7 @@ void Panel::handleGuest()
 
         int choice;
         if (!(cin >> choice)) {
-       
+
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             cout << "Invalid input. Try again.\n";
@@ -38,10 +38,10 @@ void Panel::handleGuest()
         }
 
         if (choice == 0) {
-            break; 
+            break;
         }
         else if (choice == 1) {
-        
+
             cout << "\nList of cars:\n";
             carManager.displayAllCars();
         }
@@ -367,13 +367,15 @@ void Panel::run()
             } else {
                 // login successful
                 User* user = userManager.searchUserByUsername(username); // same pointer u
-                if (user->role == CUSTOMER) {
-                    cout << "Welcome, " << user->username << "!\n";
+                if (user->role == CUSTOMER)
                     handleCustomer(user);
-                } else {
-                    cout << "Login successful but role is not CUSTOMER. (role = " << user->role << ")\n";
-                    // می‌توان اینجا handleStaff/handleManager را اضافه کرد
-                }
+                else if (user->role == STAFF)
+                    handleStaff(user);
+                else if (user->role == MANAGER)
+                    handleManager(user);
+                else if (user->role == TECHNICIAN)
+                    handleMaintenance(user);
+
             }
         }
         else if (choice == 2) {
@@ -384,3 +386,214 @@ void Panel::run()
         }
     }
 }
+void Panel::handleManager(User* currentUser)
+{
+    cout << "\nWelcome, " << currentUser->username << " (Manager)\n";
+
+    while (true)
+    {
+        cout << "\n--- Manager Menu ---\n";
+        cout << "1) View all users\n";
+        cout << "2) Block user\n";
+        cout << "3) Add Staff\n";
+        cout << "4) Add Maintenance\n";
+        cout << "5) Save system backup\n";
+        cout << "0) Logout\n";
+        cout << "Enter choice: ";
+
+        int choice;
+        if (!(cin >> choice)) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            continue;
+        }
+
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+        if (choice == 0) break;
+
+        else if (choice == 1) {
+            userManager.displayAllUsers();
+        }
+
+        else if (choice == 2) {
+            string username;
+            cout << "Enter username to block: ";
+            cin >> username;
+
+            User* u = userManager.searchUserByUsername(username);
+            if (!u) {
+                cout << "User not found.\n";
+            } else {
+                u->blocked = true;
+                userManager.saveUsersToFile();
+                cout << "User blocked successfully.\n";
+            }
+        }
+
+        else if (choice == 3 || choice == 4) {
+
+            string username, password;
+
+            cout << "Enter username: ";
+            cin >> username;
+
+            if (userManager.searchUserByUsername(username)) {
+                cout << "Username already exists.\n";
+                continue;
+            }
+
+            cout << "Enter password: ";
+            cin >> password;
+
+            string hash = to_string(hash<string>{}(password));
+
+            UserRole role = (choice == 3) ? STAFF : TECHNICIAN;
+
+            if (userManager.registerUser(username, hash, role)) {
+                cout << "User created successfully.\n";
+            } else {
+                cout << "Creation failed.\n";
+            }
+        }
+
+        else if (choice == 5) {
+            userManager.saveUsersToFile();
+            carManager.saveCarsToFile();
+            cout << "Backup saved successfully.\n";
+        }
+    }
+}
+
+void Panel::handleStaff(User* currentUser)
+{
+    cout << "\nWelcome, " << currentUser->username << " (Staff)\n";
+
+    while (true)
+    {
+        cout << "\n--- Staff Menu ---\n";
+        cout << "1) Convert reservation to rented\n";
+        cout << "2) Return car\n";
+        cout << "3) Process reservation queue\n";
+        cout << "4) Add new car\n";
+        cout << "5) Remove car\n";
+        cout << "0) Logout\n";
+        cout << "Enter choice: ";
+
+        int choice;
+        if (!(cin >> choice)) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            continue;
+        }
+
+        if (choice == 0) break;
+
+        else if (choice == 1) {
+            int rid;
+            cout << "Reservation ID: ";
+            cin >> rid;
+
+            if (reservationManager.convertReservationToRented(rid))
+                cout << "Converted successfully.\n";
+            else
+                cout << "Failed.\n";
+        }
+
+        else if (choice == 2) {
+            int rid;
+            cout << "Reservation ID: ";
+            cin >> rid;
+
+            if (reservationManager.returnCar(rid))
+                cout << "Car returned successfully.\n";
+            else
+                cout << "Failed.\n";
+        }
+
+        else if (choice == 3) {
+            reservationManager.processReservationQueue();
+            cout << "Queue processed.\n";
+        }
+
+        else if (choice == 4) {
+            Car newCar;
+            cout << "Enter ID: ";
+            cin >> newCar.id;
+            cout << "Brand: ";
+            cin >> newCar.brand;
+            cout << "Type: ";
+            cin >> newCar.type;
+            cout << "Price per day: ";
+            cin >> newCar.pricePerDay;
+            newCar.status = CarStatus::AVAILABLE;
+
+            carManager.addCar(newCar);
+            carManager.saveCarsToFile();
+
+            cout << "Car added successfully.\n";
+        }
+
+        else if (choice == 5) {
+            int id;
+            cout << "Car ID to remove: ";
+            cin >> id;
+
+            if (carManager.removeCarByID(id)) {
+                carManager.saveCarsToFile();
+                cout << "Car removed.\n";
+            } else {
+                cout << "Car not found.\n";
+            }
+        }
+    }
+}
+
+void Panel::handleMaintenance(User* currentUser)
+{
+    cout << "\nWelcome, " << currentUser->username << " (Maintenance)\n";
+
+    while (true)
+    {
+        cout << "\n--- Maintenance Menu ---\n";
+        cout << "1) Register repair\n";
+        cout << "2) View maintenance records\n";
+        cout << "0) Logout\n";
+        cout << "Enter choice: ";
+
+        int choice;
+        cin >> choice;
+
+        if (choice == 0) break;
+
+        else if (choice == 1) {
+
+            Maintenance m;
+
+            cout << "Car ID: ";
+            cin >> m.CarId;
+
+            cout << "Description: ";
+            cin >> m.Description;
+
+            cout << "Cost: ";
+            cin >> m.Cost;
+
+            maintenanceManager.MainS.pushBack(m);
+            maintenanceManager.SaveTF();
+
+            Car* car = carManager.searchCarByID(m.CarId);
+            if (car)
+                car->status = CarStatus::MAINTENANCE;
+
+            carManager.saveCarsToFile();
+
+            cout << "Repair registered.\n";
+        }
+
+        else if (choice == 2) {
+            maintenanceManager.displayAllMaintenance();
+        }
+    }
+}
+

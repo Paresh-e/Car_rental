@@ -14,6 +14,7 @@ public:
     DoublyLinkedList<Maintenance> MainS;
     bool LoadFF(string = "maintenance.txt");
     void SaveTF(string = "maintenance.txt");
+    void displayAllMaintenance();
 };
 
 

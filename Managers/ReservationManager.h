@@ -40,12 +40,14 @@ int generateNewReservationID();
     
     bool empty() const;
 
-    
     Reservation* getNextReservation();
 
-    
-    void loadFromFile(const std::string& filename);
-    void saveToFile(const std::string& filename) const;
+    bool convertReservationToRented(int reservationID);
+    bool returnCar(int reservationID);
+    void processReservationQueue();
+
+    void loadFromFile(const std::string& filename = "Reservations.txt");
+    void saveToFile(const std::string& filename = "Reservations.txt") const;
 };
 
 #endif

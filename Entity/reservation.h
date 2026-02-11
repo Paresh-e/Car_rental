@@ -7,7 +7,8 @@ enum ReservationStatus
 {
     PENDING,
     CONFIRMED,
-    CANCELED
+    CANCELED,
+    COMPLETED
 };
 
 class Reservation

@@ -15,12 +15,36 @@ bool Date::operator<(const Date& other) const
     if (month != other.month) return month < other.month;
     return day < other.day;
 }
-
+bool Date::operator>(const Date& other) const
+{
+    if (year != other.year) return year > other.year;
+    if (month != other.month) return month > other.month;
+    return day > other.day;
+}
 bool Date::operator==(const Date& other) const
 {
     return year == other.year &&
            month == other.month &&
            day == other.day;
+}
+int Date::daysFrom(const Date& other) const
+{
+    std::tm a = {};
+    a.tm_year = year - 1900;
+    a.tm_mon  = month - 1;
+    a.tm_mday = day;
+
+    std::tm b = {};
+    b.tm_year = other.year - 1900;
+    b.tm_mon  = other.month - 1;
+    b.tm_mday = other.day;
+
+    time_t timeA = std::mktime(&a);
+    time_t timeB = std::mktime(&b);
+
+    const int secondsPerDay = 60 * 60 * 24;
+
+    return static_cast<int>((timeA - timeB) / secondsPerDay);
 }
 
 string Date::to_string() const

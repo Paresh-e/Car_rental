@@ -183,3 +183,81 @@ void ReservationManager::saveToFile(const std::string& filename) const
 
     out.close();
 }
+
+bool ReservationManager::convertReservationToRented(int reservationID)
+{
+    Reservation* r = findReservationByID(reservationID);
+    if (!r) return false;
+
+    if (r->status != ReservationStatus::PENDING)
+        return false;
+
+    Car* car = carManager.searchCarByID(r->carID);
+    if (!car) return false;
+
+    r->status = ReservationStatus::CONFIRMED;
+    car->status = CarStatus::RENTED;
+
+    this->saveToFile();
+    carManager.saveCarsToFile();
+
+    return true;
+}
+bool ReservationManager::returnCar(int reservationID)
+{
+    Reservation* r = findReservationByID(reservationID);
+    if (!r) return false;
+
+    if (r->status != ReservationStatus::CONFIRMED)
+        return false;
+
+    Car* car = carManager.searchCarByID(r->carID);
+    if (!car) return false;
+
+    Date today = Date::today();
+
+    double fine = 0;
+
+    if (today > r->reservedTo) {
+        int lateDays = today.daysFrom(r->reservedTo);
+
+        fine = lateDays * car->pricePerDay;    // configurable
+    }
+
+    r->status = ReservationStatus::COMPLETED;
+    r->paid = false;
+    r->totalCost += fine;
+
+    car->status = CarStatus::AVAILABLE;
+
+    saveToFile();
+    carManager.saveCarsToFile();
+
+    return true;
+}
+void ReservationManager::processReservationQueue()
+{
+    auto* node = carManager.getCarsList()->getHead();
+
+    while (node != nullptr) {
+
+        Car& car = node->data;
+
+        if (car.status == CarStatus::AVAILABLE && !car.waitingQueue.isEmpty()) {
+
+            Reservation* nextRes = car.waitingQueue.pop();
+
+            nextRes->status = ReservationStatus::CONFIRMED;
+            car.status = CarStatus::RENTED;
+
+            cout << "Car " << car.id
+                 << " assigned to reservation "
+                 << nextRes->reservationID << endl;
+        }
+
+        node = node->next;
+    }
+
+    saveToFile();
+    carManager.saveCarsToFile();
+}

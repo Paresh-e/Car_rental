@@ -68,3 +68,24 @@ void MaintenanceManager::SaveTF(string filename) {
     }
     file.close();
 }
+void MaintenanceManager::displayAllMaintenance()
+{
+    if (MainS.isEmpty()) {
+        cout << "No maintenance records.\n";
+        return;
+    }
+
+    auto* node = MainS.getHead();
+    while (node != nullptr) {
+        Maintenance& m = node->data;
+
+        cout << "Car ID: " << m.CarId
+             << " | Description: " << m.Description
+             << " | Cost: " << m.Cost
+             << " | Date(Entry): " << m.Entry.to_string()
+             << " | Date(Exit): " << m.Exit.to_string()
+             << endl;
+
+        node = node->next;
+    }
+}

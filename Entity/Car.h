@@ -5,6 +5,9 @@
 #ifndef CAR_RENTAL_CAR_H
 #define CAR_RENTAL_CAR_H
 #include <string>
+#include "reservation.h"
+
+#include "../Containers/MinHeap.h"
 
 enum CarStatus
 {
@@ -23,7 +26,7 @@ public:
     std::string type;
     double pricePerDay;
     CarStatus status;
-
+    MinHeap<Reservation*> waitingQueue;
     Car();
     Car(int id,
         const std::string& brand,

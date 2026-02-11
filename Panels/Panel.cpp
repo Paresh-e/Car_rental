@@ -4,8 +4,8 @@
 #include <functional>
 using namespace std;
 
-Panel::Panel(CarManager& cm, UserManager& um, ReservationManager& rm)
-    : carManager(cm), userManager(um), reservationManager(rm)
+Panel::Panel(CarManager& cm, UserManager& um, ReservationManager& rm,MaintenanceManager& mm)
+    : carManager(cm), userManager(um), reservationManager(rm), maintenanceManager(mm)
 {}
 
 void Panel::showInitialMenu()
@@ -397,7 +397,7 @@ void Panel::handleManager(User* currentUser)
         cout << "2) Block user\n";
         cout << "3) Add Staff\n";
         cout << "4) Add Maintenance\n";
-        cout << "5) Revenue report\n";
+        cout << "5) Save system backup\n";
         cout << "0) Logout\n";
         cout << "Enter choice: ";
 
@@ -405,7 +405,6 @@ void Panel::handleManager(User* currentUser)
         if (!(cin >> choice)) {
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Invalid input.\n";
             continue;
         }
 
@@ -423,16 +422,19 @@ void Panel::handleManager(User* currentUser)
             cin >> username;
 
             User* u = userManager.searchUserByUsername(username);
-            if (u) {
-                u->blocked = true;
-                cout << "User blocked successfully.\n";
-            } else {
+            if (!u) {
                 cout << "User not found.\n";
+            } else {
+                u->blocked = true;
+                userManager.saveUsersToFile();
+                cout << "User blocked successfully.\n";
             }
         }
 
         else if (choice == 3 || choice == 4) {
+
             string username, password;
+
             cout << "Enter username: ";
             cin >> username;
 
@@ -445,24 +447,24 @@ void Panel::handleManager(User* currentUser)
             cin >> password;
 
             string hash = to_string(hash<string>{}(password));
-            UserRole role = (choice == 3) ? STAFF : MAINTENANCE;
 
-            if (userManager.registerUser(username, hash, role))
-                cout << "User added successfully.\n";
-            else
-                cout << "Failed.\n";
+            UserRole role = (choice == 3) ? STAFF : TECHNICIAN;
+
+            if (userManager.registerUser(username, hash, role)) {
+                cout << "User created successfully.\n";
+            } else {
+                cout << "Creation failed.\n";
+            }
         }
 
         else if (choice == 5) {
-            double revenue = reservationManager.calculateTotalRevenue();
-            cout << "Total Revenue: " << revenue << endl;
-        }
-
-        else {
-            cout << "Invalid option.\n";
+            userManager.saveUsersToFile();
+            carManager.saveCarsToFile();
+            cout << "Backup saved successfully.\n";
         }
     }
 }
+
 void Panel::handleStaff(User* currentUser)
 {
     cout << "\nWelcome, " << currentUser->username << " (Staff)\n";
@@ -474,6 +476,7 @@ void Panel::handleStaff(User* currentUser)
         cout << "2) Return car\n";
         cout << "3) Process reservation queue\n";
         cout << "4) Add new car\n";
+        cout << "5) Remove car\n";
         cout << "0) Logout\n";
         cout << "Enter choice: ";
 
@@ -488,27 +491,64 @@ void Panel::handleStaff(User* currentUser)
 
         else if (choice == 1) {
             int rid;
-            cout << "Enter reservation ID: ";
+            cout << "Reservation ID: ";
             cin >> rid;
-            reservationManager.convertToRented(rid);
+
+            if (reservationManager.convertReservationToRented(rid))
+                cout << "Converted successfully.\n";
+            else
+                cout << "Failed.\n";
         }
 
         else if (choice == 2) {
-            int carID;
-            cout << "Enter Car ID: ";
-            cin >> carID;
-            reservationManager.returnCar(carID);
+            int rid;
+            cout << "Reservation ID: ";
+            cin >> rid;
+
+            if (reservationManager.returnCar(rid))
+                cout << "Car returned successfully.\n";
+            else
+                cout << "Failed.\n";
         }
 
         else if (choice == 3) {
             reservationManager.processReservationQueue();
+            cout << "Queue processed.\n";
         }
 
         else if (choice == 4) {
-            carManager.addCarInteractive();
+            Car newCar;
+            cout << "Enter ID: ";
+            cin >> newCar.id;
+            cout << "Brand: ";
+            cin >> newCar.brand;
+            cout << "Type: ";
+            cin >> newCar.type;
+            cout << "Price per day: ";
+            cin >> newCar.pricePerDay;
+            newCar.status = CarStatus::AVAILABLE;
+
+            carManager.addCar(newCar);
+            carManager.saveCarsToFile();
+
+            cout << "Car added successfully.\n";
+        }
+
+        else if (choice == 5) {
+            int id;
+            cout << "Car ID to remove: ";
+            cin >> id;
+
+            if (carManager.removeCarByID(id)) {
+                carManager.saveCarsToFile();
+                cout << "Car removed.\n";
+            } else {
+                cout << "Car not found.\n";
+            }
         }
     }
 }
+
 void Panel::handleMaintenance(User* currentUser)
 {
     cout << "\nWelcome, " << currentUser->username << " (Maintenance)\n";
@@ -516,8 +556,8 @@ void Panel::handleMaintenance(User* currentUser)
     while (true)
     {
         cout << "\n--- Maintenance Menu ---\n";
-        cout << "1) Mark car for maintenance\n";
-        cout << "2) Register repair\n";
+        cout << "1) Register repair\n";
+        cout << "2) View maintenance records\n";
         cout << "0) Logout\n";
         cout << "Enter choice: ";
 
@@ -527,17 +567,33 @@ void Panel::handleMaintenance(User* currentUser)
         if (choice == 0) break;
 
         else if (choice == 1) {
-            int id;
+
+            Maintenance m;
+
             cout << "Car ID: ";
-            cin >> id;
-            carManager.markMaintenance(id);
+            cin >> m.CarId;
+
+            cout << "Description: ";
+            cin >> m.Description;
+
+            cout << "Cost: ";
+            cin >> m.Cost;
+
+            maintenanceManager.MainS.pushBack(m);
+            maintenanceManager.SaveTF();
+
+            Car* car = carManager.searchCarByID(m.CarId);
+            if (car)
+                car->status = CarStatus::MAINTENANCE;
+
+            carManager.saveCarsToFile();
+
+            cout << "Repair registered.\n";
         }
 
         else if (choice == 2) {
-            int id;
-            cout << "Car ID: ";
-            cin >> id;
-            carManager.registerRepair(id);
+            maintenanceManager.displayAllMaintenance();
         }
     }
 }
+

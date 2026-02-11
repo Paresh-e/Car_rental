@@ -2,9 +2,9 @@
 #define PANEL_H
 
 #include <string>
-#include "CarManger.h" 
-#include "UserManager.h"
-#include "ReservationManager.h"
+#include "../Managers/CarManger.h"
+#include "../Managers/UserManager.h"
+#include "../Managers/ReservationManager.h"
 #include <ctime>
 class Panel {
 private:

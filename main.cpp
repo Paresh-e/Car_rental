@@ -6,25 +6,33 @@
 #include "Managers/MaintenanceManager.h"
 
 #include "Panels/Panel.h"
-
+#include <filesystem>
 using namespace std;
 
 int main()
+
 {
-    CarManager carManager("Cars.txt");
-    UserManager userManager("Users.txt");
-    MaintenanceManager maintenanceManager;
 
-    ReservationManager reservationManager(carManager);
+    std::cout << std::filesystem::current_path();
 
-    // Load data
-    carManager.loadCarsFromFile();
-    userManager.loadUsersFromFile();
-    maintenanceManager.LoadFF("maintenance.txt");
-    reservationManager.loadFromFile("Reservations.txt");
+        CarManager carManager("Reservations.txt");
+        UserManager userManager("Users.txt");
+        MaintenanceManager maintenanceManager("maintenance.txt");
+        ReservationManager reservationManager(carManager);
 
-    Panel panel(carManager, userManager, reservationManager, maintenanceManager);
-    panel.run();
+        // Load data
+        carManager.loadCarsFromFile();
+        userManager.loadUsersFromFile();
+        maintenanceManager.LoadFF();
+        reservationManager.loadFromFile();
+
+        Panel panel(carManager, userManager, reservationManager, maintenanceManager);
+        panel.run();
+
+
+
+
+
 
     return 0;
 }

@@ -52,5 +52,5 @@ public:
     void displayInOrder();
 };
 
-#include "AVL.cpp"
+#include "AVL.tpp"
 #endif 

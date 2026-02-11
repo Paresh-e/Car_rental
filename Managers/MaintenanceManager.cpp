@@ -6,10 +6,14 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-bool MaintenanceManager::LoadFF(string filename) {
-    ifstream file(filename);
-    if (!file.good())
+bool MaintenanceManager::LoadFF() {
+    ifstream file(fileName);
+    if (!file.good()){
+        cout << "Error: Cannot open file: " << fileName << endl;
         return false;
+    }
+
+
     string line;
 
     while (getline(file, line)) {
@@ -46,8 +50,8 @@ bool MaintenanceManager::LoadFF(string filename) {
     return true;
 }
 
-void MaintenanceManager::SaveTF(string filename) {
-    ofstream file(filename, ios::app); // append
+void MaintenanceManager::SaveTF() {
+    ofstream file(fileName, ios::app); // append
     if (!file) {
         cout << "file Maintenance cannot be open";
         return;
@@ -88,4 +92,8 @@ void MaintenanceManager::displayAllMaintenance()
 
         node = node->next;
     }
+}
+
+MaintenanceManager::MaintenanceManager(string a) {
+fileName = a ;
 }

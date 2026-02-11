@@ -29,6 +29,6 @@ public:
 };
 
 
-#include "MinHeap.cpp"  
+#include "MinHeap.tpp"
 
 #endif

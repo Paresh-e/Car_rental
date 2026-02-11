@@ -446,7 +446,7 @@ void Panel::handleManager(User* currentUser)
             cout << "Enter password: ";
             cin >> password;
 
-            string hash = to_string(hash<string>{}(password));
+            string hash = to_string(std :: hash<string>{}(password));
 
             UserRole role = (choice == 3) ? STAFF : TECHNICIAN;
 

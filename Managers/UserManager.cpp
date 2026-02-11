@@ -144,3 +144,35 @@ void UserManager::displayAllUsers()
         curr = curr->next;
     }
 }
+int UserManager::generateNewUserID()
+{
+    int maxID = 0;
+
+    auto curr = usersList.getHead();
+    while (curr != nullptr)
+    {
+        if (curr->data.id > maxID)
+            maxID = curr->data.id;
+
+        curr = curr->next;
+    }
+
+    return maxID + 1;
+}
+bool UserManager::registerUser(string username, string passwordHash, UserRole role)
+{
+    
+    if (userTable.search(username) != nullptr)
+        return false;
+
+    int newID = generateNewUserID();
+
+    User newUser(newID, username, passwordHash, role);
+
+    bool result = addUser(newUser);
+
+    if (result)
+        saveUsersToFile();   
+
+    return result;
+}

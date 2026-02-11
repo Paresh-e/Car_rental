@@ -14,10 +14,10 @@ class Reservation
 {
 public:
     int reservationID;
-
     int userID;
     int carID;
-
+    double totalCost;
+    bool paid;
     Date requestDate;     
     Date reservedFrom;   
     Date reservedTo;      

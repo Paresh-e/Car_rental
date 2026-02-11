@@ -36,3 +36,4 @@ public:
     Node* getTail() const;
     void clear();
 };
+#include "DoublyLL.cpp"

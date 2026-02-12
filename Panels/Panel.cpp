@@ -24,7 +24,7 @@ void Panel::handleGuest()
         cout << "\n--- Guest Menu ---\n";
         cout << "1) Show all cars (ID, Brand, Type, Price, Status)\n";
         cout << "2) Show car details by ID\n";
-        cout << "3) Register (Customer / Maintenance)\n";
+        cout << "3) Register (as Customer)\n";
         cout << "0) Back to main menu\n";
         cout << "Enter choice: ";
 
@@ -64,12 +64,12 @@ void Panel::handleGuest()
                 cout << "Brand: " << c->brand << "\n";
                 cout << "Type: " << c->type << "\n";
                 cout << "Price per day: " << c->pricePerDay << "\n";
-                cout << "Status: " << c->status << "\n";
+                cout << "Status: " << Car::statusTostring(c->status) << "\n";
             }
         }
         else if (choice == 3)
         {
-    handleRegister();
+        handleRegister();
         }
         else {
             cout << "Unknown option. Try again.\n";
@@ -81,30 +81,16 @@ void Panel::handleRegister()
 {
     string username;
     string password;
-    int roleChoice;
+
 
     cout << "\n--- Register Menu ---\n";
-    cout << "1) Customer\n";
-    cout << "2) Maintenance (Staff)\n";
-    cout << "Enter choice: ";
-    if (!(cin >> roleChoice)) {
-        cout << "Invalid input.\n";
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        return;
-    }
 
-    UserRole role;
-    if (roleChoice == 1)
-        role = CUSTOMER;
-    else if (roleChoice == 2)
-        role = STAFF;
-    else {
-        cout << "Invalid role.\n";
-        return;
-    }
 
-    cout << "Enter username: ";
+
+
+
+    UserRole role = CUSTOMER;
+   cout << "Enter username: ";
     if (!(cin >> username)) {
         cout << "Invalid username.\n";
         cin.clear();
@@ -158,6 +144,7 @@ void Panel::handleCustomer(User* currentUser)
         cout << "3) View my reservations\n";
         cout << "4) Pay for a reservation\n";
         cout << "5) Cancel a reservation\n";
+        cout << "6) Return car\n";
         cout << "0) Logout\n";
         cout << "Enter choice: ";
 
@@ -193,9 +180,9 @@ void Panel::handleCustomer(User* currentUser)
             cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
             std::string fromStr, toStr;
-            cout << "Enter start date (YYYY-MM-DD): ";
+            cout << "Enter start date (DD|MM|YYYY): ";
             std::getline(cin, fromStr);
-            cout << "Enter end date (YYYY-MM-DD): ";
+            cout << "Enter end date (DD|MM|YYYY): ";
             std::getline(cin, toStr);
 
             // validate car exists
@@ -217,7 +204,7 @@ void Panel::handleCustomer(User* currentUser)
                 r.reservedFrom = Date::from_string(fromStr);
                 r.reservedTo   = Date::from_string(toStr);
             } catch (...) {
-                cout << "Invalid date format. Use YYYY-MM-DD.\n";
+                cout << "Invalid date format. Use YYYY|MM|DD.\n";
                 continue;
             }
 
@@ -232,8 +219,7 @@ void Panel::handleCustomer(User* currentUser)
             r.paid = false;
 
             reservationManager.addReservation(r);
-            // اگر addReservation داخل خودش save نمی‌کند اینجا صدا بزن:
-            // reservationManager.saveToFile("reservations.txt");
+
 
             cout << "Reservation created. ID: " << r.reservationID
                  << " Total cost: " << r.totalCost << " (status: PENDING)\n";
@@ -251,7 +237,7 @@ void Panel::handleCustomer(User* currentUser)
                          << "  CarID: " << rp->carID
                          << "  From: " << rp->reservedFrom.to_string()
                          << "  To: "   << rp->reservedTo.to_string()
-                         << "  Status: " << rp->status
+                         << "  Status: " << Reservation::statusTostringRes(rp->status)
                          << "  Paid: " << (rp->paid ? "Yes" : "No")
                          << "  Total: " << rp->totalCost
                          << "\n";
@@ -297,6 +283,18 @@ void Panel::handleCustomer(User* currentUser)
                 cout << "Cancellation failed (not found or cannot cancel).\n";
             }
         }
+        else if (choice == 6)
+        {
+            int rid;
+            cout << "Enter reservation ID to return: ";
+            cin >> rid;
+
+            if (reservationManager.returnByCustomer(rid, currentUser->id))
+                cout << "Car returned successfully.\n";
+            else
+                cout << "Return failed.\n";
+        }
+
         else {
             cout << "Unknown option. Try again.\n";
         }
@@ -304,6 +302,26 @@ void Panel::handleCustomer(User* currentUser)
 }
 void Panel::run()
 {
+    userManager.loadUsersFromFile();
+    if (!userManager.hasManager())
+    {
+        cout << "No manager found. Create initial manager account.\n";
+
+        string username, password;
+
+        cout << "Manager username: ";
+        cin >> username;
+
+        cout << "Manager password: ";
+        cin >> password;
+
+        string hash = to_string(std::hash<string>{}(password));
+
+        userManager.registerUser(username, hash, MANAGER);
+        userManager.saveUsersToFile();
+        cout << "Initial manager created successfully.\n";
+    }
+
     while (true)
     {
         showInitialMenu();
@@ -398,6 +416,7 @@ void Panel::handleManager(User* currentUser)
         cout << "3) Add Staff\n";
         cout << "4) Add Maintenance\n";
         cout << "5) Save system backup\n";
+
         cout << "0) Logout\n";
         cout << "Enter choice: ";
 
@@ -477,6 +496,8 @@ void Panel::handleStaff(User* currentUser)
         cout << "3) Process reservation queue\n";
         cout << "4) Add new car\n";
         cout << "5) Remove car\n";
+        cout << "6) Approve reservation\n";
+
         cout << "0) Logout\n";
         cout << "Enter choice: ";
 
@@ -516,22 +537,34 @@ void Panel::handleStaff(User* currentUser)
             cout << "Queue processed.\n";
         }
 
-        else if (choice == 4) {
+        else if (choice == 4)
+        {
             Car newCar;
-            cout << "Enter ID: ";
-            cin >> newCar.id;
+
+
+
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // پاک کردن بافر
+
             cout << "Brand: ";
-            cin >> newCar.brand;
+            getline(cin, newCar.brand);
+
             cout << "Type: ";
-            cin >> newCar.type;
+            getline(cin, newCar.type);
+
             cout << "Price per day: ";
-            cin >> newCar.pricePerDay;
+            if (!(cin >> newCar.pricePerDay)) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Invalid price.\n";
+                continue;
+            }
+
             newCar.status = CarStatus::AVAILABLE;
 
             carManager.addCar(newCar);
             carManager.saveCarsToFile();
 
-            cout << "Car added successfully.\n";
+            cout << "Car added successfully. ID = " << newCar.id << "\n";
         }
 
         else if (choice == 5) {
@@ -546,6 +579,18 @@ void Panel::handleStaff(User* currentUser)
                 cout << "Car not found.\n";
             }
         }
+        else if (choice == 6)
+        {
+            int rid;
+            cout << "Enter reservation ID to approve: ";
+            cin >> rid;
+
+            if (reservationManager.approveReservation(rid))
+                cout << "Reservation approved.\n";
+            else
+                cout << "Failed to approve.\n";
+        }
+
     }
 }
 
@@ -566,30 +611,46 @@ void Panel::handleMaintenance(User* currentUser)
 
         if (choice == 0) break;
 
-        else if (choice == 1) {
-
+        else if (choice == 1)
+        {
             Maintenance m;
 
             cout << "Car ID: ";
-            cin >> m.CarId;
+            if (!(cin >> m.CarId)) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Invalid Car ID.\n";
+                continue;
+            }
+
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
             cout << "Description: ";
-            cin >> m.Description;
+            getline(cin, m.Description);
 
             cout << "Cost: ";
-            cin >> m.Cost;
+            if (!(cin >> m.Cost)) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Invalid cost.\n";
+                continue;
+            }
+
+            Car* car = carManager.searchCarByID(m.CarId);
+            if (!car) {
+                cout << "Car not found.\n";
+                continue;
+            }
 
             maintenanceManager.MainS.pushBack(m);
             maintenanceManager.SaveTF();
 
-            Car* car = carManager.searchCarByID(m.CarId);
-            if (car)
-                car->status = CarStatus::MAINTENANCE;
-
+            car->status = CarStatus::MAINTENANCE;
             carManager.saveCarsToFile();
 
-            cout << "Repair registered.\n";
+            cout << "Repair registered successfully.\n";
         }
+
 
         else if (choice == 2) {
             maintenanceManager.displayAllMaintenance();

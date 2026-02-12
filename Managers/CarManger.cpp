@@ -6,6 +6,8 @@
 #include "iostream"
 #include "fstream"
 #include "sstream"
+
+int CarManager::IDcounter = 0 ;
 CarManager::CarManager(string fileName)
 {
     this->fileName = fileName;
@@ -37,12 +39,16 @@ void CarManager::loadCarsFromFile()
 
         ss >> id >> brand >> type >> price >> statusInt;
 
-        Car car(id, brand, type, price);
-        car.status = (CarStatus)statusInt;
+        Car car(brand, type, price,Car::intToStatus(statusInt));
+
+
 
         carsList.pushBack(car);
         Car* carPtr = &(carsList.getTail()->data);
         carTree.insert(to_string(carPtr->id), carPtr);
+
+        if (id > IDcounter)
+            IDcounter = id;
     }
 
     inFile.close();
@@ -62,7 +68,7 @@ void CarManager::saveCarsToFile()
     
     while (node)
     {
-        Car car = node->data;
+        Car& car = node->data;
 
         outFile << car.id << " "
                 << car.brand << " "
@@ -79,6 +85,9 @@ void CarManager::saveCarsToFile()
 void CarManager::addCar(const Car& car)
 {
     carsList.pushBack(car);
+    Car* carPtr = &(carsList.getTail()->data);
+    carTree.insert(to_string(carPtr->id), carPtr);
+
 }
 
 bool CarManager::removeCarByID(int id)
@@ -117,12 +126,12 @@ void CarManager::displayAllCars()
     auto node = carsList.getHead();
     while (node)
     {
-        Car car = node->data;
+        Car& car = node->data;
         cout << "ID: " << car.id
              << " Brand: " << car.brand
              << " Type: " << car.type
              << " Price: " << car.pricePerDay
-             << " Status: " << car.status
+             << " Status: " << Car::statusTostring(car.status)
              << endl;
         node = node->next;
     }

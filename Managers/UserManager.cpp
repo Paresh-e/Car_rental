@@ -90,7 +90,17 @@ bool UserManager::addUser(const User& user)
 
     return true;
 }
-
+bool UserManager::hasManager()
+{
+    auto curr = usersList.getHead();
+    while (curr != nullptr)
+    {
+        if (curr->data.role == MANAGER)
+            return true;
+        curr = curr->next;
+    }
+    return false;
+}
 bool UserManager::removeUserByUsername(string username)
 {
     auto curr = usersList.getHead();

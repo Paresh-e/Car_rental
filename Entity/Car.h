@@ -20,7 +20,7 @@ enum CarStatus
 class Car
 {
 public:
-    static int IDcounter;
+
     int id;
     std::string brand;
     std::string type;
@@ -28,10 +28,14 @@ public:
     CarStatus status;
     MinHeap<Reservation*> waitingQueue;
     Car();
-    Car(int id,
+    Car(
         const std::string& brand,
         const std::string& type,
-        double pricePerDay);
+        double pricePerDay,
+        CarStatus aw);
+    ~Car();
+    CarStatus static intToStatus(int);
+     static string statusTostring(CarStatus a);
 };
 
 #endif //CAR_RENTAL_CAR_H

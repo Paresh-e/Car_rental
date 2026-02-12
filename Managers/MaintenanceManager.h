@@ -11,13 +11,16 @@
 
 class MaintenanceManager {
 public:
+
+    string name;
     string fileName;
     DoublyLinkedList<Maintenance> MainS;
-    bool LoadFF();
+    void LoadFF();
     void SaveTF();
     void displayAllMaintenance();
     MaintenanceManager(string a ="F:/projects/car_rental/maintenance.txt" );
 };
+
 
 
 #endif //CAR_RENTAL_MAINTENANCEMANAGER_H

@@ -5,10 +5,12 @@
 
 enum ReservationStatus
 {
-    PENDING,
-    CONFIRMED,
-    CANCELED,
-    COMPLETED
+    PENDING,      // درخواست داده شده
+    APPROVED,     // تایید شده توسط مدیر/استف
+    REJECTED,     // رد شده
+    DELIVERED,       // پرداخت شده و تحویل داده شده
+    COMPLETED,    // ماشین برگشته
+    CANCELED
 };
 
 class Reservation
@@ -41,6 +43,8 @@ public:
 
         return requestDate < other.requestDate;
     }
+    static string statusTostringRes(ReservationStatus a);
+    ReservationStatus static intToStatusRes(int);
 };
 
 #endif //CAR_RENTAL_RESERVATION_H

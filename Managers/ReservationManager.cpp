@@ -6,7 +6,7 @@
 #include <fstream>
 #include <stdexcept>
 #include <cmath>
-
+#include "../Entity/Reservation.h"
 ReservationManager::ReservationManager(CarManager& cm)
     : carManager(cm) {}
 
@@ -69,11 +69,16 @@ bool ReservationManager::payReservation(int reservationID)
 {
     Reservation* r = findReservationByID(reservationID);
     if (r == nullptr) return false;
-    if (r->status != PENDING) return false; // فقط قابل پرداخت در وضعیت PENDING
+    if (r->status != APPROVED)
+    {
+        cout << "Reservation not approved yet.\n";
+        return false;
+    }
+
 
     // mark as paid
     r->paid = true;
-    r->status = CONFIRMED;
+    r->status = ReservationStatus::DELIVERED;
 
     // تبدیل وضعیت خودرو به RENTED
     Car* car = carManager.searchCarByID(r->carID);
@@ -85,7 +90,7 @@ bool ReservationManager::payReservation(int reservationID)
 
     // ذخیره تغییرات رزرو در فایل
     saveToFile("reservations.txt");
-
+    carManager.saveCarsToFile();
     return true;
 }
 
@@ -106,7 +111,7 @@ double ReservationManager::calculateReservationCost(const Reservation& r)
     Car* car = carManager.searchCarByID(r.carID);
     if (!car) return 0;
 
-    int days = (r.reservedTo.year*365 + r.reservedTo.month*30 + r.reservedTo.day)
+    long long int days = (r.reservedTo.year*365 + r.reservedTo.month*30 + r.reservedTo.day)
              - (r.reservedFrom.year*365 + r.reservedFrom.month*30 + r.reservedFrom.day);
     if (days <= 0) days = 1;
 
@@ -149,7 +154,7 @@ void ReservationManager::loadFromFile(const std::string& filename)
         r.requestDate = Date::from_string(reqDate);
         r.reservedFrom = Date::from_string(fromDate);
         r.reservedTo = Date::from_string(toDate);
-        r.status = static_cast<ReservationStatus>(status);
+        r.status = Reservation::intToStatusRes(status);
 
         addReservation(r);
     }
@@ -176,6 +181,7 @@ void ReservationManager::saveToFile(const std::string& filename) const
             << r.reservedFrom.to_string() << " "
             << r.reservedTo.to_string() << " "
             << r.status
+
             << "\n";
 
         node = node->next;
@@ -189,13 +195,13 @@ bool ReservationManager::convertReservationToRented(int reservationID)
     Reservation* r = findReservationByID(reservationID);
     if (!r) return false;
 
-    if (r->status != ReservationStatus::PENDING)
+    if (r->status != ReservationStatus::APPROVED)
         return false;
 
     Car* car = carManager.searchCarByID(r->carID);
     if (!car) return false;
 
-    r->status = ReservationStatus::CONFIRMED;
+    r->status = ReservationStatus::DELIVERED;
     car->status = CarStatus::RENTED;
 
     this->saveToFile();
@@ -208,7 +214,7 @@ bool ReservationManager::returnCar(int reservationID)
     Reservation* r = findReservationByID(reservationID);
     if (!r) return false;
 
-    if (r->status != ReservationStatus::CONFIRMED)
+    if (r->status != ReservationStatus::DELIVERED)
         return false;
 
     Car* car = carManager.searchCarByID(r->carID);
@@ -247,7 +253,7 @@ void ReservationManager::processReservationQueue()
 
             Reservation* nextRes = car.waitingQueue.pop();
 
-            nextRes->status = ReservationStatus::CONFIRMED;
+            nextRes->status = ReservationStatus::DELIVERED;
             car.status = CarStatus::RENTED;
 
             cout << "Car " << car.id
@@ -260,4 +266,39 @@ void ReservationManager::processReservationQueue()
 
     saveToFile();
     carManager.saveCarsToFile();
+}
+bool ReservationManager::approveReservation(int rid)
+{
+    Reservation* r = findReservationByID(rid);
+    if (!r) return false;
+
+    if (r->status != PENDING)
+        return false;
+
+    r->status = APPROVED;
+    saveToFile();
+
+    return true;
+}
+bool ReservationManager::returnByCustomer(int rid, int userID)
+{
+    Reservation* r = findReservationByID(rid);
+    if (!r) return false;
+
+    if (r->userID != userID)
+        return false;
+
+    if (r->status != ReservationStatus::DELIVERED)
+        return false;
+
+    r->status = COMPLETED;
+
+    Car* car = carManager.searchCarByID(r->carID);
+    if (car)
+        car->status = CarStatus::AVAILABLE;
+
+    saveToFile();
+    carManager.saveCarsToFile();
+
+    return true;
 }

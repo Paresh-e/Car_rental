@@ -15,6 +15,7 @@ class CarManager {
     string fileName;
 
 public:
+    static int IDcounter;
     CarManager(string fileName = "cars.txt");
 
     void loadCarsFromFile();

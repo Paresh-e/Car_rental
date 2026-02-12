@@ -6,71 +6,64 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-bool MaintenanceManager::LoadFF() {
-    ifstream file(fileName);
-    if (!file.good()){
-        cout << "Error: Cannot open file: " << fileName << endl;
-        return false;
+void MaintenanceManager::LoadFF()
+{
+    ifstream in("maintenance.txt");
+    if (!in.is_open()) {
+        cout << "Maintenance file not found. Starting empty.\n";
+        return;
     }
-
 
     string line;
 
-    while (getline(file, line)) {
-        if (line.empty())
-            continue;
+    while (getline(in, line))
+    {
+        if (line.empty()) continue;
+
         stringstream ss(line);
-        Maintenance temp =  Maintenance();
-
-        string EnDay, EnMonth, EnYear;
-        ss >> EnDay >> EnMonth >> EnYear;
-        temp.Entry.day = std::stoi(EnDay);
-        temp.Entry.month = std::stoi(EnMonth);
-        temp.Entry.year = std::stoi(EnYear);
-        ss.ignore(1, '|');
-        string ExDay, ExMonth, ExYear;
-        ss >> ExDay >> ExMonth >> ExYear;
-        temp.Exit.day = std::stoi(ExDay);
-        temp.Exit.month = std::stoi(ExMonth);
-        temp.Exit.year = std::stoi(ExYear);
-        ss.ignore(1, '|');
-
-        getline(ss, temp.Description, '|');
-        ss >> temp.Cost;
-        ss.ignore(1, '|');
-        ss >> temp.CarId;
-        ss.ignore(1, '|');
-        ss >> temp.UserId;
-        ss.ignore(1, '|');
-
-        MainS.pushBack(temp);
-
+        string carIdStr, description, costStr ,EntryDate,ExitDate;
+        getline(ss, name, '|');
+        getline(ss, carIdStr, '|');
+        getline(ss, description, '|');
+        getline(ss, costStr, '|');
+        getline(ss, EntryDate, '|');
+        getline(ss, ExitDate, '|');
+        Maintenance m;
+        m.CarId = stoi(carIdStr);
+        m.Description = description;
+        m.Cost = stod(costStr);
+        m.Technician = name;
+        m.Entry = Date::from_string(EntryDate);
+        m.Exit = Date::from_string(ExitDate);
+        MainS.pushBack(m);
     }
-    file.close();
-    return true;
+
+    in.close();
 }
 
-void MaintenanceManager::SaveTF() {
-    ofstream file(fileName, ios::app); // append
-    if (!file) {
-        cout << "file Maintenance cannot be open";
+
+void MaintenanceManager::SaveTF()
+{
+    ofstream out("maintenance.txt");
+    if (!out.is_open()) {
+        cout << "Error opening maintenance file for writing.\n";
         return;
     }
-    auto curr = MainS.getHead();
 
-    while (curr != nullptr)
+    auto * temp = MainS.getHead();
+    while (temp != nullptr)
     {
-    file << curr->data.Entry.day << " " << curr->data.Entry.month << " " << curr->data.Entry.year << "|"
-         << curr->data.Entry.day << " " << curr->data.Entry.month << " " << curr->data.Entry.year << "|"
-         << curr->data.Description << "|"
-         << curr->data.Cost << "|"
-         << curr->data.CarId << "|"
-         << curr->data.UserId << endl;
+        out << this->name<<"|"
+        <<temp->data.CarId << "|"
+        << temp->data.Description << "|"
+        << temp->data.Cost <<"|"
+        << temp->data.Entry.to_string()<<"|"
+        <<temp->data.Exit.to_string()<<"\n";
 
-
-        curr = curr->next;
+        temp = temp->next;
     }
-    file.close();
+
+    out.close();
 }
 void MaintenanceManager::displayAllMaintenance()
 {
@@ -82,7 +75,11 @@ void MaintenanceManager::displayAllMaintenance()
     auto* node = MainS.getHead();
     while (node != nullptr) {
         Maintenance& m = node->data;
-
+        if(m.Technician == name){
+            cout<<"You:: ";
+        }else{
+            cout<<m.Technician;
+        }
         cout << "Car ID: " << m.CarId
              << " | Description: " << m.Description
              << " | Cost: " << m.Cost

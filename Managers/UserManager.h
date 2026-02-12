@@ -22,7 +22,7 @@ private:
 
 public:
     UserManager(string fileName);
-
+    bool hasManager();
     void loadUsersFromFile();
     void saveUsersToFile();
 

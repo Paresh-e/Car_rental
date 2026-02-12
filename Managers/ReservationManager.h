@@ -48,6 +48,10 @@ int generateNewReservationID();
 
     void loadFromFile(const std::string& filename = "Reservations.txt");
     void saveToFile(const std::string& filename = "Reservations.txt") const;
+
+    bool approveReservation(int rid);
+
+    bool returnByCustomer(int rid, int userID);
 };
 
 #endif

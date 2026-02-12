@@ -15,9 +15,9 @@ public:
     string Description;
     double Cost;
     int CarId;
-    int UserId;
+    string Technician;
     Maintenance();
-    Maintenance(Date&,Date&,string&,double,int,int);
+    Maintenance(Date&,Date&,string&,double,int,string);
 
 };
 
